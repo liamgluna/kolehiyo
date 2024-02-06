@@ -6,14 +6,14 @@ import (
 
 func (app *application) healthcheckHandler(w http.ResponseWriter, r *http.Request) {
 	env := envelope{
-		"status":      "available",
+		"status": "available",
 		"system_info": map[string]string{
 			"environment": app.config.env,
 			"version":     version,
 		},
 	}
 
-	err := app.writeJSON(w, r, http.StatusOK, env, nil)
+	err := app.writeJSON(w, http.StatusOK, env, nil)
 	if err != nil {
 		app.logger.Error(err.Error())
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)

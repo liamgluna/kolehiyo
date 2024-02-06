@@ -28,7 +28,7 @@ func (app *application) showUniversityHandler(w http.ResponseWriter, r *http.Req
 		Version:  1,
 	}
 
-	err = app.writeJSON(w, r, http.StatusOK, envelope{"university": university}, nil)
+	err = app.writeJSON(w, http.StatusOK, envelope{"university": university}, nil)
 	if err != nil {
 		app.logger.Error(err.Error())
 		http.Error(w, "The server encountered a problem and could not process your request", http.StatusInternalServerError)
