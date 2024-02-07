@@ -14,7 +14,7 @@ func (app *application) createUniversityHandler(w http.ResponseWriter, r *http.R
 func (app *application) showUniversityHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readIDParam(r)
 	if err != nil {
-		http.NotFound(w, r)
+		app.notFoundResponse(w, r)
 		return
 	}
 
@@ -30,8 +30,7 @@ func (app *application) showUniversityHandler(w http.ResponseWriter, r *http.Req
 
 	err = app.writeJSON(w, http.StatusOK, envelope{"university": university}, nil)
 	if err != nil {
-		app.logger.Error(err.Error())
-		http.Error(w, "The server encountered a problem and could not process your request", http.StatusInternalServerError)
+		app.serverErrorResponse(w, r, err)
 	}
 
 }
