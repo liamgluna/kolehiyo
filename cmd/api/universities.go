@@ -8,7 +8,21 @@ import (
 )
 
 func (app *application) createUniversityHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Create a new university")
+	var input struct {
+		Name     string   `json:"name"`
+		Founded  int32    `json:"founded"`
+		Location string   `json:"location"`
+		Campuses []string `json:"campuses"`
+		Website  string   `json:"website"`
+	}
+
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	fmt.Fprintf(w, "%+v\n", input)
 }
 
 func (app *application) showUniversityHandler(w http.ResponseWriter, r *http.Request) {
