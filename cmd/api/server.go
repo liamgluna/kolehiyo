@@ -17,8 +17,7 @@ func (app *application) serve() error {
 		WriteTimeout: 30 * time.Second,
 	}
 
-	msg := fmt.Sprintf("starting server on %s", srv.Addr)
-	app.logger.Info(msg)
+	app.logger.Info("starting server", "addr", srv.Addr, "env", app.config.env)
 
 	err := srv.ListenAndServe()
 	if err != nil {
