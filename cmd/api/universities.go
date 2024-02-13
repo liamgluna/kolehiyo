@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
@@ -39,6 +40,15 @@ func (app *application) createUniversityHandler(w http.ResponseWriter, r *http.R
 		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
+
+	err = app.models.Universities.Insert(university)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	headers := make(http.Header)
+	headers.Set("Location", fmt.Sprintf("/v1/universities/%d", university.ID))
 
 	err = app.writeJSON(w, http.StatusCreated, envelope{"university": university}, nil)
 	if err != nil {

@@ -1,10 +1,17 @@
 package data
 
 import (
+	"context"
+	"database/sql"
 	"time"
 
 	"github.com/liamgluna/kolehiyo/internal/validator"
+	"github.com/lib/pq"
 )
+
+type UniversityModel struct {
+	DB *sql.DB
+}
 
 type University struct {
 	ID        int64     `json:"id"`
@@ -33,4 +40,18 @@ func ValidateUniversity(v *validator.Validator, university *University) {
 	v.Check(len(university.Website) <= 100, "website", "must not be more than 100 bytes long")
 
 	v.Check(validator.Unique(university.Campuses), "campuses", "must not contain duplicate values")
+}
+
+func (m UniversityModel) Insert(university *University) error {
+	query := `
+		INSERT INTO universities (name, founded, location, campuses, website)
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id, created_at, version`
+
+	args := []any{university.Name, time.Time(university.Founded), university.Location, pq.Array(university.Campuses), university.Website}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	return m.DB.QueryRowContext(ctx, query, args...).Scan(&university.ID, &university.CreatedAt, &university.Version)
 }
