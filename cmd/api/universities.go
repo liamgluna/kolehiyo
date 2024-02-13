@@ -1,9 +1,9 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/liamgluna/kolehiyo/internal/data"
 	"github.com/liamgluna/kolehiyo/internal/validator"
@@ -63,15 +63,15 @@ func (app *application) showUniversityHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	founded := data.Date(time.Date(1929, time.June, 16, 0, 0, 0, 0, time.UTC))
-	university := &data.University{
-		ID:       id,
-		Name:     "La Salle University Ozamiz",
-		Founded:  founded,
-		Location: "Ozamiz City, Misamis Occidental",
-		Website:  "https://www.lsu.edu.ph",
-		Campuses: []string{"Main Campus", "Integrated School Campus"},
-		Version:  1,
+	university, err := app.models.Universities.Get(id)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
 	}
 
 	err = app.writeJSON(w, http.StatusOK, envelope{"university": university}, nil)

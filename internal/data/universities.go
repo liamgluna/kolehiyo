@@ -3,6 +3,7 @@ package data
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 
 	"github.com/liamgluna/kolehiyo/internal/validator"
@@ -54,4 +55,42 @@ func (m UniversityModel) Insert(university *University) error {
 	defer cancel()
 
 	return m.DB.QueryRowContext(ctx, query, args...).Scan(&university.ID, &university.CreatedAt, &university.Version)
+}
+
+func (m UniversityModel) Get(id int64) (*University, error) {
+	if id < 1 {
+		return nil, ErrRecordNotFound
+	}
+
+	query := `
+		SELECT id, created_at, name, founded, location, campuses, website, version
+		FROM universities
+		WHERE id = $1`
+
+	var university University
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	row := m.DB.QueryRowContext(ctx, query, id)
+	err := row.Scan(
+		&university.ID,
+		&university.CreatedAt,
+		&university.Name,
+		&university.Founded,
+		&university.Location,
+		pq.Array(&university.Campuses),
+		&university.Website,
+		&university.Version)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return &university, nil
 }
