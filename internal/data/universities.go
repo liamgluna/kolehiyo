@@ -94,3 +94,37 @@ func (m UniversityModel) Get(id int64) (*University, error) {
 
 	return &university, nil
 }
+
+func (m UniversityModel) Update(university *University) error {
+	// version is used to implement optimistic concurrency control
+	query := `
+		UPDATE universities
+		SET name = $1, founded = $2, location = $3, campuses = $4, website = $5, version = version + 1
+		WHERE id = $6 AND version = $7
+		RETURNING version`
+
+	args := []any{
+		university.Name,
+		time.Time(university.Founded),
+		university.Location,
+		pq.Array(university.Campuses),
+		university.Website,
+		university.ID,
+		university.Version}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := m.DB.QueryRowContext(ctx, query, args...).Scan(&university.Version)
+	if err != nil {
+		switch {
+		// sql.ErrNoRows in this case means that there was an edit conflict
+		case errors.Is(err, sql.ErrNoRows):
+			return ErrEditConflict
+		default:
+			return err
+		}
+	}
+
+	return nil
+}
