@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS universities_name_idx ON universities USING GIN (to_tsvector('simple', name));
