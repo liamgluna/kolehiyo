@@ -157,3 +157,49 @@ func (m UniversityModel) Delete(id int64) error {
 
 	return nil
 }
+
+func (m UniversityModel) GetAll(name string, filters Filters) ([]*University, error) {
+	query := `
+	SELECT id, created_at, name, founded, location, campuses, website, version
+	FROM universities
+	WHERE (to_tsvector('simple', name) @@ plainto_tsquery('simple', $1) OR $1 = '')
+	ORDER BY id`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	rows, err := m.DB.QueryContext(ctx, query, name)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	// we avoid the var keyword because we want to return an empty slice instead of nil
+	// to avoid encoding null in the JSON response if there are no universities found
+	universities := []*University{}
+
+	for rows.Next() {
+		var university University
+		err := rows.Scan(
+			&university.ID,
+			&university.CreatedAt,
+			&university.Name,
+			&university.Founded,
+			&university.Location,
+			pq.Array(&university.Campuses),
+			&university.Website,
+			&university.Version)
+
+		if err != nil {
+			return nil, err
+		}
+
+		universities = append(universities, &university)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return universities, nil
+}
