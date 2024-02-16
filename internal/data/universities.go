@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/liamgluna/kolehiyo/internal/validator"
@@ -159,16 +160,17 @@ func (m UniversityModel) Delete(id int64) error {
 }
 
 func (m UniversityModel) GetAll(name string, filters Filters) ([]*University, error) {
-	query := `
+	query := fmt.Sprintf(`
 	SELECT id, created_at, name, founded, location, campuses, website, version
 	FROM universities
 	WHERE (to_tsvector('simple', name) @@ plainto_tsquery('simple', $1) OR $1 = '')
-	ORDER BY id`
+	ORDER BY %s %s, id ASC
+	LIMIT $2 OFFSET $3`, filters.sortColumn(), filters.sortDirection())
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, err := m.DB.QueryContext(ctx, query, name)
+	rows, err := m.DB.QueryContext(ctx, query, name, filters.limit(), filters.offset())
 	if err != nil {
 		return nil, err
 	}
