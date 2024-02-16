@@ -201,13 +201,13 @@ func (app *application) listUniversitiesHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	universities, err := app.models.Universities.GetAll(input.Name, input.Filters)
+	universities, metadata, err := app.models.Universities.GetAll(input.Name, input.Filters)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"universities": universities}, nil)
+	err = app.writeJSON(w, http.StatusOK, envelope{"universities": universities, "metadata": metadata}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}

@@ -159,9 +159,9 @@ func (m UniversityModel) Delete(id int64) error {
 	return nil
 }
 
-func (m UniversityModel) GetAll(name string, filters Filters) ([]*University, error) {
+func (m UniversityModel) GetAll(name string, filters Filters) ([]*University, Metadata, error) {
 	query := fmt.Sprintf(`
-	SELECT id, created_at, name, founded, location, campuses, website, version
+	SELECT count(*) OVER(), id, created_at, name, founded, location, campuses, website, version
 	FROM universities
 	WHERE (to_tsvector('simple', name) @@ plainto_tsquery('simple', $1) OR $1 = '')
 	ORDER BY %s %s, id ASC
@@ -172,17 +172,19 @@ func (m UniversityModel) GetAll(name string, filters Filters) ([]*University, er
 
 	rows, err := m.DB.QueryContext(ctx, query, name, filters.limit(), filters.offset())
 	if err != nil {
-		return nil, err
+		return nil, Metadata{}, err
 	}
 	defer rows.Close()
 
 	// we avoid the var keyword because we want to return an empty slice instead of nil
 	// to avoid encoding null in the JSON response if there are no universities found
 	universities := []*University{}
+	totalRecords := 0
 
 	for rows.Next() {
 		var university University
 		err := rows.Scan(
+			&totalRecords,
 			&university.ID,
 			&university.CreatedAt,
 			&university.Name,
@@ -193,15 +195,17 @@ func (m UniversityModel) GetAll(name string, filters Filters) ([]*University, er
 			&university.Version)
 
 		if err != nil {
-			return nil, err
+			return nil, Metadata{}, err
 		}
 
 		universities = append(universities, &university)
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, err
+		return nil, Metadata{}, err
 	}
 
-	return universities, nil
+	metadata := calculateMetadata(totalRecords, filters.Page, filters.PageSize)
+
+	return universities, metadata, nil
 }
