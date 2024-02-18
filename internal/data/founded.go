@@ -12,7 +12,6 @@ type Date time.Time
 
 // Implement json.Marshaler and json.Unmarshaler interfaces
 
-
 // Because MarshalJSON() needs to return a byte slice and not
 // modify the receiver, we can use a value receiver for this method.
 func (d Date) MarshalJSON() ([]byte, error) {
@@ -22,7 +21,7 @@ func (d Date) MarshalJSON() ([]byte, error) {
 }
 
 // IMPORTANT: Because UnmarshalJSON() needs to modify the
-// receiver, we must use a pointer receiver for this to work correctly. 
+// receiver, we must use a pointer receiver for this to work correctly.
 func (d *Date) UnmarshalJSON(jsonValue []byte) error {
 	// try to unmarshal the data into a time.Time
 	unquotedJSONValue, err := strconv.Unquote(string(jsonValue))
