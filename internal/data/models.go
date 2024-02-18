@@ -12,12 +12,10 @@ var (
 
 type Models struct {
 	Universities UniversityModel
-	Users		UserModel
 }
 
 func NewModels(db *sql.DB) Models {
 	return Models{
 		Universities: UniversityModel{DB: db},
-		Users: UserModel{DB: db},
 	}
 }
