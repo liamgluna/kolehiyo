@@ -11,3 +11,7 @@ migration:
 migrate-up:
 	@echo 'Running up migrations...'
 	migrate -path ./migrations -database ${KOLEHIYO_DB_DSN} up
+
+migrate-down:
+	@echo 'Running down migrations...'
+	migrate -path ./migrations -database ${KOLEHIYO_DB_DSN} down
