@@ -23,7 +23,7 @@ confirm:
 run/api:
 	go run ./cmd/api -db-dsn=${KOLEHIYO_DB_DSN}
 
-## run/api: run the cmd/api application and enalbe CO
+## run/api/cors: run the cmd/api application and enalbe CORS
 .PHONY: run/api/cors
 run/api/cors:
 	go run ./cmd/api -db-dsn=${KOLEHIYO_DB_DSN} -cors-trusted-origins=${name}
@@ -90,21 +90,20 @@ build/api:
 # PRODUCTION
 # ==================================================================================== #
 
-production_host_ip = '128.199.172.210'
 
 ## production/connect: connect to the production server
 .PHONY: production/connect
 production/connect:
-	ssh kolehiyo@${production_host_ip}
+	ssh kolehiyo@${PRODUCTION_HOST_IP}
 
 ## production/deploy/api: deploy the api to production
 .PHONY: production/deploy/api
 production/deploy/api:
-	rsync -P ./bin/linux_amd64/api kolehiyo@${production_host_ip}:~
-	rsync -rP --delete ./migrations kolehiyo@${production_host_ip}:~
-	rsync -P ./remote/production/api.service kolehiyo@${production_host_ip}:~
-	rsync -P ./remote/production/Caddyfile kolehiyo@${production_host_ip}:~
-	ssh -t kolehiyo@${production_host_ip} '\
+	rsync -P ./bin/linux_amd64/api kolehiyo@${PRODUCTION_HOST_IP}:~
+	rsync -rP --delete ./migrations kolehiyo@${PRODUCTION_HOST_IP}:~
+	rsync -P ./remote/production/api.service kolehiyo@${PRODUCTION_HOST_IP}:~
+	rsync -P ./remote/production/Caddyfile kolehiyo@${PRODUCTION_HOST_IP}:~
+	ssh -t kolehiyo@${PRODUCTION_HOST_IP} '\
 		migrate -path ~/migrations -database $$KOLEHIYO_DB_DSN up \
 		&& sudo mv ~/api.service /etc/systemd/system/ \
 		&& sudo systemctl enable api \

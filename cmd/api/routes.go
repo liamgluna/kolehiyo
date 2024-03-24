@@ -15,18 +15,17 @@ func (app *application) routes() http.Handler {
 	router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
 
 	router.HandlerFunc(http.MethodGet, "/", app.homeHandler)
-	router.HandlerFunc(http.MethodGet, "/api", app.homeHandler)
-	router.HandlerFunc(http.MethodGet, "/api/v0", app.homeHandler)
+	router.HandlerFunc(http.MethodGet, "/v0", app.homeHandler)
 
 	router.HandlerFunc(http.MethodGet, "/health", app.healthHandler)
 
-	router.HandlerFunc(http.MethodGet, "/api/v0/universities", app.listUniversitiesHandler)
-	router.HandlerFunc(http.MethodGet, "/api/v0/universities/:id", app.showUniversityHandler)
+	router.HandlerFunc(http.MethodGet, "/v0/universities", app.listUniversitiesHandler)
+	router.HandlerFunc(http.MethodGet, "/v0/universities/:id", app.showUniversityHandler)
 
 	// restricted access from public
-	router.HandlerFunc(http.MethodPost, "/api/v0/universities", app.createUniversityHandler)
-	router.HandlerFunc(http.MethodPatch, "/api/v0/universities/:id", app.updateUniversityHandler)
-	router.HandlerFunc(http.MethodDelete, "/api/v0/universities/:id", app.deleteUniversityHandler)
+	router.HandlerFunc(http.MethodPost, "/v0/universities", app.createUniversityHandler)
+	router.HandlerFunc(http.MethodPatch, "/v0/universities/:id", app.updateUniversityHandler)
+	router.HandlerFunc(http.MethodDelete, "/v0/universities/:id", app.deleteUniversityHandler)
 
 	return app.recoverPanic(app.enableCORS(app.rateLimit(router)))
 }
