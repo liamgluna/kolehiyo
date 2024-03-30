@@ -18,6 +18,8 @@ func (app *application) createUniversityHandler(w http.ResponseWriter, r *http.R
 		Location string    `json:"location"`
 		Campuses []string  `json:"campuses"`
 		Website  string    `json:"website"`
+		ImgURL   string    `json:"img_url,omitempty"`
+		ImgCite  string    `json:"img_cite,omitempty"`
 	}
 
 	err := app.readJSON(w, r, &input)
@@ -32,6 +34,8 @@ func (app *application) createUniversityHandler(w http.ResponseWriter, r *http.R
 		Location: input.Location,
 		Campuses: input.Campuses,
 		Website:  input.Website,
+		ImgURL:   input.ImgURL,
+		ImgCite:  input.ImgCite,
 	}
 
 	v := validator.New()
@@ -107,6 +111,8 @@ func (app *application) updateUniversityHandler(w http.ResponseWriter, r *http.R
 		Location *string    `json:"location"`
 		Campuses []string   `json:"campuses"`
 		Website  *string    `json:"website"`
+		ImgURL   *string    `json:"img_url,omitempty"`
+		ImgCite  *string    `json:"img_cite,omitempty"`
 	}
 
 	err = app.readJSON(w, r, &input)
@@ -131,6 +137,13 @@ func (app *application) updateUniversityHandler(w http.ResponseWriter, r *http.R
 	if input.Website != nil {
 		university.Website = *input.Website
 	}
+	if input.ImgURL != nil {
+		university.ImgURL = *input.ImgURL
+	}
+	if input.ImgCite != nil {
+		university.ImgCite = *input.ImgCite
+	}
+	
 
 	v := validator.New()
 

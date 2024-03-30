@@ -23,6 +23,8 @@ type University struct {
 	Location  string    `json:"location"`
 	Campuses  []string  `json:"campuses,omitempty"`
 	Website   string    `json:"website"`
+	ImgURL   string    `json:"img_url,omitempty"`
+	ImgCite   string    `json:"img_cite,omitempty"`
 	Version   int32     `json:"version"`
 }
 
@@ -46,11 +48,11 @@ func ValidateUniversity(v *validator.Validator, university *University) {
 
 func (m UniversityModel) Insert(university *University) error {
 	query := `
-		INSERT INTO universities (name, founded, location, campuses, website)
-		VALUES ($1, $2, $3, $4, $5)
+		INSERT INTO universities (name, founded, location, campuses, website, img_url, img_cite)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
 		RETURNING id, created_at, version`
 
-	args := []any{university.Name, time.Time(university.Founded), university.Location, pq.Array(university.Campuses), university.Website}
+	args := []any{university.Name, time.Time(university.Founded), university.Location, pq.Array(university.Campuses), university.Website, university.ImgURL, university.ImgCite}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -64,7 +66,7 @@ func (m UniversityModel) Get(id int64) (*University, error) {
 	}
 
 	query := `
-		SELECT id, created_at, name, founded, location, campuses, website, version
+		SELECT id, created_at, name, founded, location, campuses, website, img_url, img_cite, version
 		FROM universities
 		WHERE id = $1`
 
@@ -82,6 +84,8 @@ func (m UniversityModel) Get(id int64) (*University, error) {
 		&university.Location,
 		pq.Array(&university.Campuses),
 		&university.Website,
+		&university.ImgURL,
+		&university.ImgCite,
 		&university.Version)
 
 	if err != nil {
@@ -100,8 +104,8 @@ func (m UniversityModel) Update(university *University) error {
 	// version is used to implement optimistic concurrency control
 	query := `
 		UPDATE universities
-		SET name = $1, founded = $2, location = $3, campuses = $4, website = $5, version = version + 1
-		WHERE id = $6 AND version = $7
+		SET name = $1, founded = $2, location = $3, campuses = $4, website = $5, img_url = $6, img_cite = $7, version = version + 1
+		WHERE id = $8 AND version = $9
 		RETURNING version`
 
 	args := []any{
@@ -110,6 +114,8 @@ func (m UniversityModel) Update(university *University) error {
 		university.Location,
 		pq.Array(university.Campuses),
 		university.Website,
+		university.ImgURL,
+		university.ImgCite,
 		university.ID,
 		university.Version}
 
@@ -161,7 +167,7 @@ func (m UniversityModel) Delete(id int64) error {
 
 func (m UniversityModel) GetAll(name string, filters Filters) ([]*University, Metadata, error) {
 	query := fmt.Sprintf(`
-	SELECT count(*) OVER(), id, created_at, name, founded, location, campuses, website, version
+	SELECT count(*) OVER(), id, created_at, name, founded, location, campuses, website, img_url, img_cite, version
 	FROM universities
 	WHERE (to_tsvector('simple', name) @@ plainto_tsquery('simple', $1) OR $1 = '')
 	ORDER BY %s %s, id ASC
@@ -192,6 +198,8 @@ func (m UniversityModel) GetAll(name string, filters Filters) ([]*University, Me
 			&university.Location,
 			pq.Array(&university.Campuses),
 			&university.Website,
+			&university.ImgURL,
+			&university.ImgCite,
 			&university.Version)
 
 		if err != nil {

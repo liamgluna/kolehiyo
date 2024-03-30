@@ -6,5 +6,7 @@ CREATE TABLE IF NOT EXISTS universities (
     location text NOT NULL,
     campuses text [],
     website text NOT NULL,
+    img_url text NOT NULL,
+    img_cite text NOT NULL,
     version integer NOT NULL DEFAULT 1
 );
